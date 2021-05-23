@@ -1,4 +1,4 @@
-# İBB(İstanbul Büyükşehir Belediyesi) Nisan 2020 - Mart 2021 Saatlik Toplu Ulaşım Veri Seti 
+# İBB(İstanbul Büyükşehir Belediyesi) Ocak 2020 - Aralık 2020 Saatlik Toplu Ulaşım Veri Seti 
 
 Veri setine ulaşmak için: https://data.ibb.gov.tr/dataset/saatlik-toplu-ulasim-veri-seti
 
