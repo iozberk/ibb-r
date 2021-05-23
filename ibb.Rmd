@@ -1,0 +1,525 @@
+---
+title: "DSM5006 - ilk_Odev"
+author: "ismail ozberk"
+date: "10 05 2021"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Veri Seti Hakkında
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+### Calisma dizini ogrenme
+
+```{r}
+print(getwd())
+```
+
+### Calisma dizini degistirme
+
+```{r}
+setwd("C:/R_Prog")
+```
+
+### Verilerin yuklenmesi
+
+```{r}
+# Nisan 2020 - Mart 2021 Toplu 
+nisan_2020 <- read.csv(file = 'veri/hourly_transportation_202004.csv')
+mayis_2020 <- read.csv(file = 'veri/hourly_transportation_202005.csv')
+haziran_2020 <- read.csv(file = 'veri/hourly_transportation_202006.csv')
+temmuz_2020 <- read.csv(file = 'veri/hourly_transportation_202007.csv')
+agustos_2020 <- read.csv(file = 'veri/hourly_transportation_202008.csv')
+eylul_2020 <- read.csv(file = 'veri/hourly_transportation_202009.csv')
+ekim_2020 <- read.csv(file = 'veri/hourly_transportation_202010.csv')
+kasim_2020 <- read.csv(file = 'veri/hourly_transportation_202011.csv')
+aralik_2020 <- read.csv(file = 'veri/hourly_transportation_202012.csv')
+ocak_2021 <- read.csv(file = 'veri/hourly_transportation_202101.csv')
+subat_2021 <- read.csv(file = 'veri/hourly_transportation_202102.csv')
+mart_2021 <- read.csv(file = 'veri/hourly_transportation_202103.csv')
+```
+
+### Ilk verileri inceleme
+
+```{r}
+head(nisan_2020)
+```
+
+### Kolon isimleri atama
+
+```{r}
+kol_isimleri <- c("ID","Tarih","TasimaTipiID",
+                  "TasimaTipi","Hat","TransferTipID",
+                  "TransferTip","YolcuSayisi","GecisSayisi")
+
+names(nisan_2020)[1:9] <- kol_isimleri
+names(mayis_2020)[1:9] <- kol_isimleri
+names(haziran_2020)[1:9] <- kol_isimleri
+names(temmuz_2020)[1:9] <- kol_isimleri
+names(agustos_2020)[1:9] <- kol_isimleri
+names(eylul_2020)[1:9] <- kol_isimleri
+names(ekim_2020)[1:9] <- kol_isimleri
+names(kasim_2020)[1:9] <- kol_isimleri
+names(aralik_2020)[1:9] <- kol_isimleri
+names(ocak_2021)[1:9] <- kol_isimleri
+names(subat_2021)[1:9] <- kol_isimleri
+names(mart_2021)[1:9] <- kol_isimleri
+```
+
+```{r}
+head(nisan_2020)
+```
+
+## Veri Duzenleme
+
+```{r}
+# Nisan ayi Aya ve Gune gore ayirma islemi
+nisan_2020$Ay <- format(as.POSIXct(nisan_2020$Tarih, 
+                                   "%Y-%m-%d %H:%M:%S", tz = ""), format = "%m")
+nisan_2020$Gun <- format(as.POSIXct(nisan_2020$Tarih, 
+                                    "%Y-%m-%d %H:%M:%S", tz = ""), format = "%d")
+```
+
+```{r}
+head(nisan_2020)
+```
+
+### Nisan ayi Gunluk yolcu sayisi hesaplama
+
+```{r}
+# gunluk sayma
+
+nisan_2020_gunleri <- aggregate(cbind(nisan_2020$YolcuSayisi) ~ Gun, 
+                                data = nisan_2020, sum, na.rm = TRUE)[[1]]
+nisan_2020_yolcu_sayisi <- aggregate(cbind(nisan_2020$YolcuSayisi) ~ Gun, 
+                                data = nisan_2020, sum, na.rm = TRUE)[[2]]
+nisan_2020_yolcu_sayisi
+
+```
+
+#### Nisan ayi gune gore yolcu sayisi grafigi
+
+```{r}
+plot(nisan_2020_gunleri,nisan_2020_yolcu_sayisi,
+     type = "h",   # diger type'lar "l","s","p","b","c","o","n"
+     main="Nisan ayi Gune gore ortalama yolcu sayisi",
+     xlab = "Nisan ayi gunler",
+     ylab = "Nisan ayi yolcu sayisi",
+     cex = 0.5)
+```
+
+#### Nisan ayi gune gore ortalama yolcu sayisi histogram grafigi
+
+```{r}
+nisan_2020_yolcu_sayisi_ort <- aggregate(cbind(nisan_2020$YolcuSayisi) ~ Gun, 
+                       data = nisan_2020, mean, na.rm = TRUE)[[2]]
+hist(nisan_2020_yolcu_sayisi_ort, freq = F,
+     main = "Nisan ayi ortalama yolcu sayisi histogram grafigi",
+     xlab = "Ortalama yolcu sayisi",
+     ylab = "", col = "steelblue"
+     )
+```
+
+## Nisan ayi Tasima tipine gore pasta grafigi
+
+```{r}
+# Kara yolu, Deniz yolu ve Rayli sistemler pasta grafigi
+pie(aggregate(x = nisan_2020$YolcuSayisi, 
+          by = list(nisan_2020$TasimaTipi), 
+          FUN = sum)[,2],
+    labels = aggregate(x = nisan_2020$YolcuSayisi, 
+          by = list(nisan_2020$TasimaTipi), 
+          FUN = sum)[,1],
+    col = c("white", "red", "blue"),
+    main = "Tasima tipine gore yolcu sayisi pasta grafigi"
+    )
+```
+
+## Hatlara gore yolcu sayıları
+
+```{r}
+aggregate(x = nisan_2020$YolcuSayisi, 
+          by = list(nisan_2020$Hat), 
+          FUN = sum)
+```
+
+### Pasta Grafik
+
+```{r}
+
+pie(aggregate(x = nisan_2020$YolcuSayisi, 
+          by = list(nisan_2020$Hat), 
+          FUN = sum)[[2]],aggregate(x = nisan_2020$YolcuSayisi, 
+          by = list(nisan_2020$Hat), 
+          FUN = sum)[[1]])
+
+```
+
+### Dot grafik tasima tipine gore
+
+```{r}
+
+nisan_2020_hatlar <- aggregate(nisan_2020$YolcuSayisi,
+                               by = list(nisan_2020$Hat),FUN = sum)[[1]]
+
+dotchart(sort(nisan_2020_yolcu_sayisi),
+         labels = nisan_2020_hatlar ,cex = .5,
+          col = c("red","blue"),
+         xlab = "Yolcu Sayisi",
+         main = "Hatlara Gore Yolcu Sayisi Dot Grafigi")
+
+```
+
+# Diger aylarin ayarlanmasi
+
+```{r}
+
+# Mayis 2020 - Mart 2021 arasi  Veri manipulasyonu
+
+
+# Mayis 2020 - Mart 2021 arasi Ay ve Gun sutunlarinin eklemesi
+# Mayis 2020 
+mayis_2020$Ay <- format(as.POSIXct(mayis_2020$Tarih, 
+                                   "%Y-%m-%d %H:%M:%S", tz = ""), format = "%m")
+mayis_2020$Gun <- format(as.POSIXct(mayis_2020$Tarih, 
+                                    "%Y-%m-%d %H:%M:%S", tz = ""), format = "%d")
+
+# Haziran 2020
+haziran_2020$Ay <- format(as.POSIXct(haziran_2020$Tarih, 
+                                     "%Y-%m-%d %H:%M:%S", tz = ""), format = "%m")
+haziran_2020$Gun <- format(as.POSIXct(haziran_2020$Tarih, 
+                                      "%Y-%m-%d %H:%M:%S", tz = ""), format = "%d")
+
+# Temmuz 2020
+temmuz_2020$Ay <- format(as.POSIXct(temmuz_2020$Tarih, 
+                                    "%Y-%m-%d %H:%M:%S", tz = ""), format = "%m")
+temmuz_2020$Gun <- format(as.POSIXct(temmuz_2020$Tarih, 
+                                     "%Y-%m-%d %H:%M:%S", tz = ""), format = "%d")
+
+# Agustos 2020
+agustos_2020$Ay <- format(as.POSIXct(agustos_2020$Tarih, 
+                                     "%Y-%m-%d %H:%M:%S", tz = ""), format = "%m")
+agustos_2020$Gun <- format(as.POSIXct(agustos_2020$Tarih, 
+                                      "%Y-%m-%d %H:%M:%S", tz = ""), format = "%d")
+
+# Eylul 2020
+eylul_2020$Ay <- format(as.POSIXct(eylul_2020$Tarih, 
+                                   "%Y-%m-%d %H:%M:%S", tz = ""), format = "%m")
+eylul_2020$Gun <- format(as.POSIXct(eylul_2020$Tarih, 
+                                    "%Y-%m-%d %H:%M:%S", tz = ""), format = "%d")
+
+# Ekim 2020
+ekim_2020$Ay <- format(as.POSIXct(ekim_2020$Tarih, 
+                                  "%Y-%m-%d %H:%M:%S", tz = ""), format = "%m")
+ekim_2020$Gun <- format(as.POSIXct(ekim_2020$Tarih, 
+                                   "%Y-%m-%d %H:%M:%S", tz = ""), format = "%d")
+
+# Kasim 2020
+kasim_2020$Ay <- format(as.POSIXct(kasim_2020$Tarih, 
+                                   "%Y-%m-%d %H:%M:%S", tz = ""), format = "%m")
+kasim_2020$Gun <- format(as.POSIXct(kasim_2020$Tarih, 
+                                    "%Y-%m-%d %H:%M:%S", tz = ""), format = "%d")
+
+# Aralik 2020
+aralik_2020$Ay <- format(as.POSIXct(aralik_2020$Tarih, 
+                                    "%Y-%m-%d %H:%M:%S", tz = ""), format = "%m")
+aralik_2020$Gun <- format(as.POSIXct(aralik_2020$Tarih, 
+                                     "%Y-%m-%d %H:%M:%S", tz = ""), format = "%d")
+
+# Ocak 2021
+ocak_2021$Ay <- format(as.POSIXct(ocak_2021$Tarih, 
+                                  "%Y-%m-%d %H:%M:%S", tz = ""), format = "%m")
+ocak_2021$Gun <- format(as.POSIXct(ocak_2021$Tarih, 
+                                   "%Y-%m-%d %H:%M:%S", tz = ""), format = "%d")
+
+# Subat 2021
+subat_2021$Ay <- format(as.POSIXct(subat_2021$Tarih, 
+                                   "%Y-%m-%d %H:%M:%S", tz = ""), format = "%m")
+subat_2021$Gun <- format(as.POSIXct(subat_2021$Tarih, 
+                                    "%Y-%m-%d %H:%M:%S", tz = ""), format = "%d")
+
+# Mart 2021
+mart_2021$Ay <- format(as.POSIXct(mart_2021$Tarih, 
+                                  "%Y-%m-%d %H:%M:%S", tz = ""), format = "%m")
+mart_2021$Gun <- format(as.POSIXct(mart_2021$Tarih, 
+                                   "%Y-%m-%d %H:%M:%S", tz = ""), format = "%d")
+
+
+# aylarin Gunluk yolcu sayisini hesaplama
+
+# Mayis 2020
+mayis_2020_gunleri <- aggregate(cbind(mayis_2020$YolcuSayisi) ~ Gun,
+                                data = mayis_2020, sum, na.rm = TRUE)[[1]]
+mayis_2020_yolcu_sayisi <- aggregate(cbind(mayis_2020$YolcuSayisi) ~ Gun,
+                                     data = mayis_2020, sum, na.rm = TRUE)[[2]]
+
+# Haziran 2020
+haziran_2020_gunleri <- aggregate(cbind(haziran_2020$YolcuSayisi) ~ Gun,
+                                  data = haziran_2020, sum, na.rm = TRUE)[[1]]
+haziran_2020_yolcu_sayisi <- aggregate(cbind(haziran_2020$YolcuSayisi) ~ Gun,
+                                       data = haziran_2020, sum, na.rm = TRUE)[[2]]
+
+# Temmuz 2020
+temmuz_2020_gunleri <- aggregate(cbind(temmuz_2020$YolcuSayisi) ~ Gun,
+                                 data = temmuz_2020, sum, na.rm = TRUE)[[1]]
+temmuz_2020_yolcu_sayisi <- aggregate(cbind(temmuz_2020$YolcuSayisi) ~ Gun,
+                                      data = temmuz_2020, sum, na.rm = TRUE)[[2]]
+
+# Agustos 2020
+agustos_2020_gunleri <- aggregate(cbind(agustos_2020$YolcuSayisi) ~ Gun,
+                                  data = agustos_2020, sum, na.rm = TRUE)[[1]]
+agustos_2020_yolcu_sayisi <- aggregate(cbind(agustos_2020$YolcuSayisi) ~ Gun,
+                                       data = agustos_2020, sum, na.rm = TRUE)[[2]]
+
+# Eylul 2020
+eylul_2020_gunleri <- aggregate(cbind(eylul_2020$YolcuSayisi) ~ Gun,
+                                data = eylul_2020, sum, na.rm = TRUE)[[1]]
+eylul_2020_yolcu_sayisi <- aggregate(cbind(eylul_2020$YolcuSayisi) ~ Gun,
+                                     data = eylul_2020, sum, na.rm = TRUE)[[2]]
+
+# Ekim 2020
+ekim_2020_gunleri <- aggregate(cbind(ekim_2020$YolcuSayisi) ~ Gun,
+                               data = ekim_2020, sum, na.rm = TRUE)[[1]]
+ekim_2020_yolcu_sayisi <- aggregate(cbind(ekim_2020$YolcuSayisi) ~ Gun,
+                                    data = ekim_2020, sum, na.rm = TRUE)[[2]]
+
+# Kasim 2020
+kasim_2020_gunleri <- aggregate(cbind(kasim_2020$YolcuSayisi) ~ Gun,
+            data = kasim_2020, sum, na.rm = TRUE)[[1]]
+kasim_2020_yolcu_sayisi <- aggregate(cbind(kasim_2020$YolcuSayisi) ~ Gun, 
+            data = kasim_2020, sum, na.rm = TRUE)[[2]]
+
+# Aralik 2020
+aralik_2020_gunleri <- aggregate(cbind(aralik_2020$YolcuSayisi) ~ Gun,
+                                 data = aralik_2020, sum, na.rm = TRUE)[[1]]
+aralik_2020_yolcu_sayisi <- aggregate(cbind(aralik_2020$YolcuSayisi) ~ Gun,
+                                data = aralik_2020, sum, na.rm = TRUE)[[2]]
+
+# Ocak 2021
+ocak_2021_gunleri <- aggregate(cbind(ocak_2021$YolcuSayisi) ~ Gun,
+                               data = ocak_2021, sum, na.rm = TRUE)[[1]]
+ocak_2021_yolcu_sayisi <- aggregate(cbind(ocak_2021$YolcuSayisi) ~ Gun,
+                              data = ocak_2021, sum, na.rm = TRUE)[[2]]
+
+# Subat 2021
+subat_2021_gunleri <- aggregate(cbind(subat_2021$YolcuSayisi) ~ Gun,
+                                data = subat_2021, sum, na.rm = TRUE)[[1]]
+subat_2021_yolcu_sayisi <- aggregate(cbind(subat_2021$YolcuSayisi) ~ Gun,
+                                data = subat_2021, sum, na.rm = TRUE)[[2]]
+
+# Mart 2021
+mart_2021_gunleri <- aggregate(cbind(mart_2021$YolcuSayisi) ~ Gun,
+                               data = mart_2021, sum, na.rm = TRUE)[[1]]
+mart_2021_yolcu_sayisi <- aggregate(cbind(mart_2021$YolcuSayisi) ~ Gun,
+                              data = mart_2021, sum, na.rm = TRUE)[[2]]
+
+
+```
+
+# 12 ayin verilerini tek veri haline getirme
+
+```{r}
+
+tum_yil <- rbind(nisan_2020,mayis_2020,
+                 haziran_2020,temmuz_2020,
+                 agustos_2020,eylul_2020,
+                 ekim_2020,kasim_2020,
+                 aralik_2020,ocak_2021,
+                 subat_2021,mart_2021)
+
+```
+
+# grafik
+
+```{r}
+
+tum_yil_aylar <- aggregate(cbind(tum_yil$YolcuSayisi) ~ Ay,
+            data = tum_yil,
+            sum)[[1]][c(4,5,6,7,8,9,10,11,12,1,2,3)]
+
+tum_yil_yolcu_sayisi <- aggregate(cbind(tum_yil$YolcuSayisi) ~ Ay,
+           data = tum_yil, sum,
+           na.rm = TRUE)[[2]][c(4,5,6,7,8,9,10,11,12,1,2,3)]
+
+plot(tum_yil_aylar,tum_yil_yolcu_sayisi,
+     type = "h", xlim=c(1,12), ylim=c(1,125000000),
+     cex.axis=.9, lwd=3,pch = 19,
+     main="Nisan 2020 - Mart 2021 aylik yolcu sayisi",
+     col.main = "blue", xaxt = "n",
+     xlab = "Nisan 2020 - Mart 2021 Aylar",
+     ylab = "Nisan 2020 - Mart 2021 Yolcu sayisi")
+axis(1, labels = c(4:12,1:3), at = c(1:12))
+
+```
+
+# Hatlara gore
+
+```{r}
+
+pie(aggregate(x = tum_yil$YolcuSayisi, 
+          by = list(tum_yil$Hat), 
+          FUN = sum)[[2]],aggregate(x = tum_yil$YolcuSayisi, 
+          by = list(tum_yil$Hat), 
+          FUN = sum)[[1]])
+
+```
+
+# yillik dot grafigi
+
+```{r}
+tum_yil_hatlar <- aggregate(tum_yil$YolcuSayisi,
+                            by = list(tum_yil$Hat),FUN = sum)[[1]]
+
+dotchart(sort(tum_yil_yolcu_sayisi), labels = tum_yil_hatlar ,cex = .5,
+          col = c("red","blue"),
+         xlab = "Yolcu Sayisi",
+         main = "Hatlara Gore Yolcu Sayisi Dot Grafigi")
+```
+
+# ggplot Paketi ile gorsellestirme
+
+```{r}
+# Paketin cagirilmasi
+library(tidyverse)
+library(dplyr)
+```
+
+```{r}
+# Nisan ayi Tasima Tipine gore yolcu Sayilari
+
+aggregate(x = nisan_2020$YolcuSayisi, 
+          by = list(nisan_2020$TasimaTipi), 
+          FUN = sum)
+
+```
+
+```{r}
+# Facet
+# Nisan ayi yolcu sayilari hesabina gore yolcu sayilari
+# coktan aza dogru Karayolu, Ray ve Deniz dir
+
+ggplot(data=nisan_2020, aes(x=Gun, y=YolcuSayisi)) +
+  geom_bar(stat="identity")+ 
+facet_grid(facets=vars(TasimaTipi)) + scale_y_log10()+
+  labs(title = "Nisan ayi")
+```
+
+```{r}
+# Transfer Tipine gore Bar Grafik
+ggplot(nisan_2020 , aes(x = TransferTip ,
+                        y = YolcuSayisi, fill = TransferTip))+
+  geom_bar(stat="identity")
+  
+```
+
+```{r}
+
+# Tasima Tipine gore Bar Grafik
+ggplot(data=nisan_2020, aes(x=YolcuSayisi, 
+                            y=TasimaTipi, fill=TasimaTipi)) +
+  geom_bar(stat="identity", width=0.75)+ coord_flip()+
+  theme_minimal()
+
+
+```
+
+```{r}
+# ?????????????????????????
+# Tasima Tipine Gore Yolcu Sayisi Histogram  Grafigi
+
+ggplot(nisan_2020, aes(x=YolcuSayisi,color=TasimaTipi,fill=TasimaTipi )) +
+  geom_histogram(bins = 20, alpha = 0.45)+
+  labs(title="Tasima Tipine Gore Yolcu Grafigi ",
+       x="Yolcu Sayisi") + facet_grid(TasimaTipi ~ .)
+```
+
+```{r}
+# Tasima tipi 
+
+ggplot(nisan_2020, aes(x=YolcuSayisi,y =TasimaTipi,color=TasimaTipi
+                       ,fill=TasimaTipi)) +
+  geom_bar(stat="identity")+
+  labs(title="Tasima Tipine Gore Yolcu Grafigi ",
+       x="Yolcu Sayisi") + facet_grid(TasimaTipi ~ .)
+```
+
+```{r}
+# Hatlara Gore Yolcu Sayisi Histogram  Grafigi
+
+ggplot(nisan_2020, aes(x=YolcuSayisi, color=Hat, fill = Hat)) +
+  geom_histogram( alpha=0.3, position="identity",bins=50)+ 
+  scale_x_log10()+
+  labs(title="Hatlara Gore Yolcu Sayisi Histogram  Grafigi ",
+       x="Yolcu Sayisi")
+```
+
+```{r}
+# 
+# Aylara gore Bar Grafik
+ggplot(data=tum_yil, aes(x=YolcuSayisi, y=Ay, fill=Ay)) +
+  geom_bar(stat="identity")+ labs(title = "Aylara Gore Yolcu Sayisi Bar Grafigi")+ theme_minimal()
+
+
+```
+
+```{r}
+
+# Tasima Tipine Gore Yolcu Sayisi Histogram  Grafigi
+
+ggplot(data=tum_yil, aes(x=YolcuSayisi, y=TasimaTipi
+                         , fill = TasimaTipi)) +
+  geom_bar(stat="identity") + coord_flip()+
+  labs(title="Nisan 2020 - Mart 2021 Tasima Tipine Gore Yolcu Sayisi Grafigi",
+       x="Yolcu Sayisi")+ theme_minimal()
+
+
+```
+
+```{r}
+# Transfer Tipine Gore Pasta Grafigi
+
+ggplot(tum_yil, aes(x=factor(1), fill=TransferTip))+
+  geom_bar(width = 1)+
+  coord_polar("y")+
+  theme(
+  axis.title.x = element_blank(),
+  axis.title.y = element_blank(),
+  panel.border = element_blank(),
+  panel.grid=element_blank(),
+  axis.ticks = element_blank(),
+  plot.title=element_text(size=14, face="bold"))+ theme_minimal()
+
+```
+
+```{r}
+
+# Transfer Tipine Gore Yolcu Sayisi Bar Grafigi
+
+ggplot(data=tum_yil, aes(x=YolcuSayisi, y=TransferTip,
+                         fill = TransferTip)) +
+  geom_bar(stat="identity") + coord_flip()+
+  labs(title="Nisan 2020 - Mart 2021 Transfer Tipine Gore Yolcu Sayisi Grafigi",
+       x="Yolcu Sayisi")
+
+
+```
+
+```{r}
+# Hatlara gore Bar Grafik
+ggplot(data=tum_yil, aes(x=YolcuSayisi, y=Hat)) +
+  geom_bar(stat="identity", fill = "steelblue")+ scale_x_log10()
+
+```
+
+```{r}
+
+```
